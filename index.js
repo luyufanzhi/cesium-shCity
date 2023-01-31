@@ -180,12 +180,18 @@ const initViewer = () => {
 const initScene = () => {
     const initTiles = () => {
         building = viewer.scene.primitives.add(
-            new Cesium.createOsmBuildings({
+            Cesium.createOsmBuildings({
                 customShader: new Cesium.CustomShader({
                     uniforms: {
                         u_envTexture: {
                             value: new Cesium.TextureUniform({
                                 url: "./Static/images/sky.jpg"
+                            }),
+                            type: Cesium.UniformType.SAMPLER_2D
+                        },
+                        u_envTexture2: {
+                            value: new Cesium.TextureUniform({
+                                url: "./Static/images/pic.jpg"
                             }),
                             type: Cesium.UniformType.SAMPLER_2D
                         },
@@ -203,11 +209,13 @@ const initScene = () => {
                                 vec3 normalEC = fsInput.attributes.normalEC;
                                 vec3 posToCamera = normalize(-positionEC); 
                                 vec3 coord = normalize(vec3(czm_inverseViewRotation * reflect(posToCamera, normalEC)));
-                                vec4 refColor = texture2D(u_envTexture, vec2(coord.x, (coord.z - coord.y) / 3.0));
                                 float ambientCoefficient = 0.3;
                                 float diffuseCoefficient = max(0.0, dot(normalEC, czm_sunDirectionEC) * 1.0);
                                 if(u_isDark){
-                                    material.diffuse = mix(vec3(0.3), vec3(0.1,0.2,0.4),clamp(positionMC.z / 200., 0.0, 1.0));
+
+                                    // dark
+                                    vec4 darkRefColor = texture2D(u_envTexture2, vec2(coord.x, (coord.z - coord.y) / 2.0));
+                                    material.diffuse = mix(mix(vec3(0.3), vec3(0.1,0.2,0.4),clamp(positionMC.z / 200., 0.0, 1.0)) , darkRefColor.rgb ,0.3);
                                     material.diffuse *= 0.2;
                                     // 注意shader中写浮点数是 一定要带小数点 否则会报错 比如0需要写成0.0 1要写成1.0
                                     float _baseHeight = 0.0; // 物体的基础高度，需要修改成一个合适的建筑基础高度
@@ -227,7 +235,10 @@ const initScene = () => {
                                     float czm_diff = step(0.005, abs(czm_h - time));
                                     material.diffuse += material.diffuse * (1.0 - czm_diff);
                                 } else {
-                                    material.diffuse = mix(mix(vec3(0.000), vec3(0.5),clamp(positionMC.z / 300., 0.0, 1.0)) , refColor.rgb ,0.3);
+
+                                    // day
+                                    vec4 dayRefColor = texture2D(u_envTexture, vec2(coord.x, (coord.z - coord.y) / 3.0));
+                                    material.diffuse = mix(mix(vec3(0.000), vec3(0.5),clamp(positionMC.z / 300., 0.0, 1.0)) , dayRefColor.rgb ,0.3);
                                     material.diffuse *= min(diffuseCoefficient + ambientCoefficient, 1.0);
                                 }
                                 material.alpha = 1.0;
@@ -273,7 +284,7 @@ const initScene = () => {
         );
 
         model1 = viewer.scene.primitives.add(
-            new Cesium.Model.fromGltf({
+            Cesium.Model.fromGltf({
                 url: "./Static/data/building_-_beveled_corners_-_shiny/scene.gltf",
                 imageBasedLighting: imageBasedLighting,
                 customShader: new Cesium.CustomShader({
@@ -309,7 +320,7 @@ const initScene = () => {
         );
 
         model2 = viewer.scene.primitives.add(
-            new Cesium.Model.fromGltf({
+            Cesium.Model.fromGltf({
                 url: "./Static/data/building_-_octagonal_-_shiny/scene.gltf",
                 imageBasedLighting: imageBasedLighting,
                 customShader: new Cesium.CustomShader({
@@ -345,7 +356,7 @@ const initScene = () => {
         );
 
         model3 = viewer.scene.primitives.add(
-            new Cesium.Model.fromGltf({
+            Cesium.Model.fromGltf({
                 url: "./Static/data/oriental_pearl_shanghai. (1)/scene.gltf",
                 imageBasedLighting: imageBasedLighting,
                 customShader: new Cesium.CustomShader({
