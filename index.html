@@ -9,10 +9,10 @@
     <!-- Make the application on mobile take up the full browser screen and disable user scaling. -->
     <meta name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
-    <link href="https://cesium.com/downloads/cesiumjs/releases/1.101/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.103/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css" rel="stylesheet">
     <script type="text/javascript"
-        src="https://cesium.com/downloads/cesiumjs/releases/1.101/Build/Cesium/Cesium.js"></script>
+        src="https://cesium.com/downloads/cesiumjs/releases/1.103/Build/Cesium/Cesium.js"></script>
     <script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
     <script type="text/javascript" src=" https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.min.js"></script>
     <script type="text/javascript" src="./index.js"></script>
@@ -118,11 +118,20 @@
             color: #fff;
             z-index: 9999;
         }
+        .view {
+            position: absolute;
+            top:10px;
+            left: 110px;
+            font-size: 13px;
+            color: #fff;
+            z-index: 9999;
+        }
     </style>
 </head>
 
 <body>
     <a class="bvideo" href="https://space.bilibili.com/432028432">可视化场景分享</a>
+    <a class="view" id="view" href="#">默认视图</a>
     <div id="sceneContainer"></div>
     <div id="loadingIndicator" class="loadingIndicator"></div>
     <div id="loadingIndicator2" class="loadingIndicator2"></div>

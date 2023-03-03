@@ -58,7 +58,7 @@ function CustomMaterialLine(options) {
         if (!defined(result)) {
             result = {};
         }
-        window.pro
+        window.m3d = true;
         result.color = Property.getValueOrClonedDefault(this._color, time, defaultColor, result.color);
         result.image = options.image;
         result.time = ((window.performance.now() - this._time) % this.duration) / this.duration;
@@ -81,10 +81,10 @@ function CustomMaterialLine(options) {
                 {
                     czm_material material = czm_getDefaultMaterial(materialInput);
                     vec2 st = materialInput.st;
-                    if(texture2D(image, vec2(0.0, 0.0)).a == 1.0){
+                    if(texture(image, vec2(0.0, 0.0)).a == 1.0){
                         discard;
                     }else{
-                        material.alpha = texture2D(image, vec2(1.0 - fract(time - st.s), st.t)).a * color.a;
+                        material.alpha = texture(image, vec2(1.0 - fract(time - st.s), st.t)).a * color.a;
                     }
                     material.diffuse = max(color.rgb * material.alpha * 3.0, color.rgb);
                     return material;
@@ -114,9 +114,12 @@ const initViewer = () => {
         animation: false,
         timeline: true,
         fullscreenButton: false,
-        terrainProvider: Cesium.createWorldTerrain(),
+        terrainProvider: Cesium.createWorldTerrain({
+            requestWaterMask: true,
+            requestVertexNormals: true,
+        }),
         contextOptions: {
-            requestWebgl2: true,
+            requestWebgl1: false,
             allowTextureFilterAnisotropic: true,
             webgl: {
                 alpha: false,
@@ -169,8 +172,8 @@ const initViewer = () => {
     viewer.scene.postProcessStages.ambientOcclusion.uniforms.stepSize = 1.8;
     viewer.scene.postProcessStages.ambientOcclusion.uniforms.blurStepSize = 1.0;
 
-    viewer.scene.screenSpaceCameraController.minimumZoomDistance = 0;
-    viewer.scene.screenSpaceCameraController.maximumZoomDistance = 30000;
+    // viewer.scene.screenSpaceCameraController.minimumZoomDistance = 0;
+    // viewer.scene.screenSpaceCameraController.maximumZoomDistance = 30000;
 }
 
 
@@ -214,7 +217,7 @@ const initScene = () => {
                                 if(u_isDark){
 
                                     // dark
-                                    vec4 darkRefColor = texture2D(u_envTexture2, vec2(coord.x, (coord.z - coord.y) / 2.0));
+                                    vec4 darkRefColor = texture(u_envTexture2, vec2(coord.x, (coord.z - coord.y) / 2.0));
                                     material.diffuse = mix(mix(vec3(0.3), vec3(0.1,0.2,0.4),clamp(positionMC.z / 200., 0.0, 1.0)) , darkRefColor.rgb ,0.3);
                                     material.diffuse *= 0.2;
                                     // 注意shader中写浮点数是 一定要带小数点 否则会报错 比如0需要写成0.0 1要写成1.0
@@ -237,7 +240,7 @@ const initScene = () => {
                                 } else {
 
                                     // day
-                                    vec4 dayRefColor = texture2D(u_envTexture, vec2(coord.x, (coord.z - coord.y) / 3.0));
+                                    vec4 dayRefColor = texture(u_envTexture, vec2(coord.x, (coord.z - coord.y) / 3.0));
                                     material.diffuse = mix(mix(vec3(0.000), vec3(0.5),clamp(positionMC.z / 300., 0.0, 1.0)) , dayRefColor.rgb ,0.3);
                                     material.diffuse *= min(diffuseCoefficient + ambientCoefficient, 1.0);
                                 }
@@ -270,7 +273,7 @@ const initScene = () => {
                                 if(u_isDark){
                                     vec2 texCoord = fsInput.attributes.texCoord_0 * 0.3;
                                     float times = czm_frameNumber / 120.0;
-                                    vec4 textureColor = texture2D(u_texture,vec2(fract(texCoord.s),float(texCoord.t) - times));
+                                    vec4 textureColor = texture(u_texture,vec2(fract(texCoord.s),float(texCoord.t) - times));
                                     material.diffuse += textureColor.rgb * 0.8;
                                 }
                             }
@@ -306,7 +309,7 @@ const initScene = () => {
                                 if(u_isDark){
                                     vec2 texCoord = fsInput.attributes.texCoord_0 * 0.3;
                                     float times = czm_frameNumber / 120.0;
-                                    vec4 textureColor = texture2D(u_texture,vec2(fract(texCoord.s),float(texCoord.t) - times));
+                                    vec4 textureColor = texture(u_texture,vec2(fract(texCoord.s),float(texCoord.t) - times));
                                     material.diffuse += textureColor.rgb * 1.5;
                                 }
                             }
@@ -342,7 +345,7 @@ const initScene = () => {
                                 if(u_isDark){
                                     vec2 texCoord = fsInput.attributes.texCoord_0 * 0.5;
                                     float times = czm_frameNumber / 120.0;
-                                    vec4 textureColor = texture2D(u_texture,vec2(float(texCoord.s) - times),fract(texCoord.t));
+                                    vec4 textureColor = texture(u_texture,vec2(float(texCoord.s) - times),fract(texCoord.t));
                                     material.diffuse += textureColor.rgb * 1.5;
                                 }
                             }
@@ -378,7 +381,7 @@ const initScene = () => {
                                 if(u_isDark){
                                     vec2 texCoord = fsInput.attributes.texCoord_0 * 0.5;
                                     float times = czm_frameNumber / 30.0;
-                                    vec4 textureColor = texture2D(u_texture,vec2(fract(texCoord.s),float(texCoord.t) - times));
+                                    vec4 textureColor = texture(u_texture,vec2(fract(texCoord.s),float(texCoord.t) - times));
                                     material.diffuse += textureColor.rgb * 0.8;
                                 }  
                             }
@@ -417,7 +420,7 @@ const initScene = () => {
                             baseWaterColor: Cesium.Color.fromCssColorString("#62809b"),
                             blendColor: new Cesium.Color(0, 1, 0.699, 1),
                             // specularMap: Material.DefaultImageId,
-                            normalMap: "https://cesium.com/downloads/cesiumjs/releases/1.100/Build/Cesium/Assets/Textures/waterNormals.jpg",
+                            normalMap: "https://cesium.com/downloads/cesiumjs/releases/1.103/Build/Cesium/Assets/Textures/waterNormals.jpg",
                             frequency: 1000,
                             animationSpeed: 0.01,
                             amplitude: 2,
@@ -514,6 +517,17 @@ const initEvent = () => {
                 onGlobeEvent();
         }
     })
+
+    document.getElementById("view").onclick = function () {
+        viewer.camera.setView({
+            destination: { x: -2852928.497690295, y: 4652428.954517055, z: 3291891.0380489714 },
+            orientation: {
+                heading: Cesium.Math.toRadians(212.20287149232163),
+                pitch: Cesium.Math.toRadians(-11.215466997379062),
+                roll: Cesium.Math.toRadians(0.004033823235683256)
+            }
+        });
+    }
     viewer.camera.setView({
         destination: { x: -2850554.9246458095, y: 4656672.153306185, z: 3287574.727124352 },
         orientation: {
@@ -522,14 +536,7 @@ const initEvent = () => {
             roll: Cesium.Math.toRadians(0.0014027234956804583)
         }
     });
-    // viewer.camera.setView({
-    //     destination: { x: -2852928.497690295, y: 4652428.954517055, z: 3291891.0380489714 },
-    //     orientation: {
-    //         heading: Cesium.Math.toRadians(212.20287149232163),
-    //         pitch: Cesium.Math.toRadians(-11.215466997379062),
-    //         roll: Cesium.Math.toRadians(0.004033823235683256)
-    //     }
-    // });
+
     viewer.clock.currentTime = Cesium.JulianDate.fromIso8601("2023-01-01T06:00:00Z");
 }
 
